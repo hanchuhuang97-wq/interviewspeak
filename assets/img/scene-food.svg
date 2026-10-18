@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" role="img" aria-label="An ice cream cone and a slice of sweet cake">
+  <rect x="6" y="6" width="388" height="308" rx="42" fill="#FFF7E8"/>
+  <ellipse cx="200" cy="260" rx="154" ry="42" fill="#FFE0B6" opacity=".75"/>
+  <!-- ice cream -->
+  <path d="M104 186 L150 286 L188 196 Z" fill="#EEC48C"/>
+  <path d="M112 213 L161 213 M120 235 L153 235 M131 259 L148 259" stroke="#D6A76D" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="128" cy="176" r="37" fill="#F7A6BC"/>
+  <circle cx="166" cy="169" r="32" fill="#FFF3DA"/>
+  <circle cx="146" cy="138" r="33" fill="#FBD3DF"/>
+  <path d="M132 128 Q141 136 132 146" fill="none" stroke="#F4A3B8" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="146" cy="106" r="9" fill="#D95C80"/>
+  <path d="M146 98 Q154 80 168 88" fill="none" stroke="#5B3A4E" stroke-width="3" stroke-linecap="round"/>
+  <g fill="#FFFFFF"><circle cx="112" cy="162" r="3"/><circle cx="151" cy="155" r="3"/><circle cx="177" cy="181" r="3"/><circle cx="139" cy="187" r="3"/></g>
+  <g fill="#B79BE8"><circle cx="122" cy="191" r="3.5"/><circle cx="162" cy="143" r="3.5"/></g>
+  <!-- cake slice -->
+  <path d="M222 266 L266 142 L338 242 Z" fill="#F7D9B0"/>
+  <path d="M226 244 L270 158 L332 238 Z" fill="#F47C9C"/>
+  <path d="M234 232 L278 162 L322 242 Z" fill="#FFF3E4"/>
+  <path d="M242 220 L285 166 L311 244 Z" fill="#FBD3DF"/>
+  <path d="M266 142 Q292 131 319 150 Q300 162 286 156 Q276 161 266 142Z" fill="#FFF3E4"/>
+  <path d="M266 142 Q284 134 301 141" fill="none" stroke="#FBD3DF" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="290" cy="130" r="11" fill="#D95C80"/>
+  <path d="M290 120 Q296 105 308 111" fill="none" stroke="#5B3A4E" stroke-width="3" stroke-linecap="round"/>
+  <!-- hearts + sparkles -->
+  <path d="M334 96 Q344 80 354 96 Q344 110 334 96Z" fill="#F47C9C"/>
+  <path d="M52 110 Q62 94 72 110 Q62 124 52 110Z" fill="#B79BE8"/>
+  <g fill="#FFC94D">
+    <path d="M320 196 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4Z"/>
+    <path d="M70 200 l5 11 11 5 -11 5 -5 11 -5 -11 -11 -5 11 -5Z"/>
+  </g>
+  <circle cx="86" cy="86" r="6" fill="#7ACBB8"/>
+  <circle cx="300" cy="88" r="5" fill="#FFC94D"/>
+</svg>

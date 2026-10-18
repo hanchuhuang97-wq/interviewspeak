@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" role="img" aria-label="Pink and purple paint, hearts and a paintbrush">
+  <rect x="6" y="6" width="388" height="308" rx="42" fill="#F7F0FF"/>
+  <ellipse cx="200" cy="252" rx="150" ry="46" fill="#E4D8FB" opacity=".8"/>
+  <!-- rainbow -->
+  <path d="M104 236 A96 96 0 0 1 296 236" fill="none" stroke="#FBD3DF" stroke-width="18" stroke-linecap="round"/>
+  <path d="M122 236 A78 78 0 0 1 278 236" fill="none" stroke="#FFE3B8" stroke-width="18" stroke-linecap="round"/>
+  <path d="M140 236 A60 60 0 0 1 260 236" fill="none" stroke="#CBEBDD" stroke-width="18" stroke-linecap="round"/>
+  <!-- palette -->
+  <path d="M96 168 Q68 186 82 220 Q96 254 142 258 Q178 260 192 238 Q204 220 186 210 Q172 202 180 188 Q190 170 168 164 Q132 154 96 168Z" fill="#FFF9EF"/>
+  <circle cx="120" cy="186" r="13" fill="#F47C9C"/>
+  <circle cx="151" cy="176" r="13" fill="#B79BE8"/>
+  <circle cx="112" cy="218" r="13" fill="#FFC94D"/>
+  <circle cx="148" cy="228" r="13" fill="#7ACBB8"/>
+  <ellipse cx="176" cy="206" rx="13" ry="9" fill="#FFF9EF"/>
+  <!-- brush -->
+  <path d="M196 216 L322 92" stroke="#5B3A4E" stroke-width="12" stroke-linecap="round"/>
+  <path d="M310 100 L338 72" stroke="#F47C9C" stroke-width="20" stroke-linecap="round"/>
+  <path d="M330 64 Q356 56 352 82 Q346 104 326 108 Z" fill="#B79BE8"/>
+  <path d="M196 216 L214 208 L208 228 Z" fill="#F6C5A6"/>
+  <!-- hearts -->
+  <path d="M282 128 Q300 96 318 128 Q300 158 282 128Z" fill="#F47C9C"/>
+  <path d="M244 96 Q256 74 268 96 Q256 116 244 96Z" fill="#B79BE8"/>
+  <path d="M330 176 Q343 156 356 176 Q343 194 330 176Z" fill="#F7A6BC"/>
+  <!-- sparkles -->
+  <g fill="#FFC94D">
+    <path d="M70 108 l5 11 11 5 -11 5 -5 11 -5 -11 -11 -5 11 -5Z"/>
+    <path d="M340 224 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4Z"/>
+  </g>
+  <circle cx="84" cy="80" r="6" fill="#7ACBB8"/>
+</svg>

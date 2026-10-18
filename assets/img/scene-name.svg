@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" role="img" aria-label="A birthday cake with five candles, a number five balloon and a Hello speech bubble">
+  <rect x="6" y="6" width="388" height="308" rx="42" fill="#FFF0F4"/>
+  <ellipse cx="206" cy="258" rx="150" ry="42" fill="#FBD3DF" opacity=".7"/>
+  <!-- balloon -->
+  <path d="M103 170 Q96 206 112 234" fill="none" stroke="#C8A9E9" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="103" cy="105" r="62" fill="#B79BE8"/>
+  <path d="M64 78 Q78 58 102 56" fill="none" stroke="#D9C6F2" stroke-width="9" stroke-linecap="round" opacity=".8"/>
+  <path d="M96 164 L103 174 L110 164" fill="#B79BE8"/>
+  <text x="103" y="130" text-anchor="middle" font-family="'Chalkboard SE','Comic Sans MS','Arial Rounded MT Bold',sans-serif" font-weight="bold" font-size="78" fill="#FFFFFF">5</text>
+  <!-- speech bubble -->
+  <rect x="248" y="56" width="114" height="66" rx="26" fill="#FFFFFF"/>
+  <path d="M278 120 L268 143 L302 121" fill="#FFFFFF"/>
+  <text x="305" y="101" text-anchor="middle" font-family="'Chalkboard SE','Comic Sans MS','Arial Rounded MT Bold',sans-serif" font-weight="bold" font-size="30" fill="#D95C80">Hi!</text>
+  <!-- cake -->
+  <ellipse cx="238" cy="272" rx="106" ry="18" fill="#E9C4D2" opacity=".55"/>
+  <path d="M146 244 L330 244 L316 272 L160 272 Z" fill="#F4C9D7"/>
+  <rect x="166" y="196" width="144" height="54" rx="12" fill="#FBD3DF"/>
+  <path d="M166 202 Q190 222 214 202 Q238 222 262 202 Q286 222 310 202 L310 222 L166 222 Z" fill="#F47C9C"/>
+  <rect x="178" y="154" width="120" height="48" rx="12" fill="#FFF3E4"/>
+  <path d="M178 160 Q196 180 216 160 Q236 180 256 160 Q276 180 298 160 L298 176 L178 176 Z" fill="#B79BE8"/>
+  <!-- candles -->
+  <g>
+    <rect x="185" y="116" width="10" height="40" rx="5" fill="#7ACBB8"/>
+    <rect x="207" y="108" width="10" height="48" rx="5" fill="#F47C9C"/>
+    <rect x="229" y="112" width="10" height="44" rx="5" fill="#FFC94D"/>
+    <rect x="251" y="106" width="10" height="50" rx="5" fill="#B79BE8"/>
+    <rect x="273" y="115" width="10" height="41" rx="5" fill="#F47C9C"/>
+    <g fill="#FFB33E">
+      <path d="M190 104 Q184 114 190 118 Q197 113 190 104Z"/>
+      <path d="M212 96 Q206 106 212 110 Q219 105 212 96Z"/>
+      <path d="M234 100 Q228 110 234 114 Q241 109 234 100Z"/>
+      <path d="M256 94 Q250 104 256 108 Q263 103 256 94Z"/>
+      <path d="M278 103 Q272 113 278 117 Q285 112 278 103Z"/>
+    </g>
+  </g>
+  <!-- sparkles -->
+  <g fill="#FFC94D">
+    <path d="M61 220 l5 11 11 5 -11 5 -5 11 -5 -11 -11 -5 11 -5Z"/>
+    <path d="M333 156 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4Z"/>
+  </g>
+  <circle cx="338" cy="128" r="6" fill="#7ACBB8"/>
+  <circle cx="69" cy="268" r="5" fill="#B79BE8"/>
+  <path d="M353 228 Q361 236 353 244 Q345 236 353 228Z" fill="#F47C9C"/>
+</svg>
