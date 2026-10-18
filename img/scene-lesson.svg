@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" role="img" aria-label="An open storybook with stars and letters">
+  <rect x="6" y="6" width="388" height="308" rx="42" fill="#F3F0FF"/>
+  <ellipse cx="200" cy="267" rx="150" ry="36" fill="#E1D8FA" opacity=".75"/>
+  <path d="M200 208 Q154 188 102 198 L102 260 Q156 249 200 268 Q244 249 298 260 L298 198 Q246 188 200 208Z" fill="#FFFFFF"/>
+  <path d="M200 208 Q154 188 102 198 L102 260 Q156 249 200 268Z" fill="#FFF9F1"/>
+  <path d="M200 208 Q246 188 298 198 L298 260 Q244 249 200 268Z" fill="#FFFDFC"/>
+  <path d="M200 208 L200 268" stroke="#E7DDF2" stroke-width="4"/>
+  <g stroke="#E8DDF3" stroke-width="4" stroke-linecap="round">
+    <path d="M120 217 Q155 210 182 222"/>
+    <path d="M120 232 Q155 225 182 237"/>
+    <path d="M120 247 Q155 240 182 252"/>
+    <path d="M218 222 Q245 210 280 217"/>
+    <path d="M218 237 Q245 225 280 232"/>
+    <path d="M218 252 Q245 240 280 247"/>
+  </g>
+  <text x="153" y="180" text-anchor="middle" font-family="'Chalkboard SE','Comic Sans MS',sans-serif" font-weight="bold" font-size="40" fill="#B79BE8">A</text>
+  <text x="200" y="166" text-anchor="middle" font-family="'Chalkboard SE','Comic Sans MS',sans-serif" font-weight="bold" font-size="40" fill="#F47C9C">B</text>
+  <text x="247" y="180" text-anchor="middle" font-family="'Chalkboard SE','Comic Sans MS',sans-serif" font-weight="bold" font-size="40" fill="#7ACBB8">C</text>
+  <path d="M84 244 Q73 224 62 233 Q55 239 63 248 Q74 258 84 244Z" fill="#F47C9C" opacity=".8"/>
+  <path d="M317 234 Q329 212 341 222 Q348 229 339 238 Q328 248 317 234Z" fill="#B79BE8" opacity=".8"/>
+  <g fill="#FFC94D">
+    <path d="M70 110 l5 11 11 5 -11 5 -5 11 -5 -11 -11 -5 11 -5Z"/>
+    <path d="M329 103 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4Z"/>
+    <path d="M200 67 l6 13 13 6 -13 6 -6 13 -6 -13 -13 -6 13 -6Z"/>
+  </g>
+  <circle cx="304" cy="198" r="6" fill="#7ACBB8"/>
+  <circle cx="96" cy="171" r="5" fill="#F47C9C"/>
+</svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" role="img" aria-label="A family photo with five people and a little dog">
+  <rect x="6" y="6" width="388" height="308" rx="42" fill="#EDF9F4"/>
+  <ellipse cx="200" cy="264" rx="152" ry="38" fill="#CFEFE4" opacity=".85"/>
+  <!-- frame -->
+  <rect x="54" y="44" width="292" height="224" rx="30" fill="#FFFFFF"/>
+  <rect x="68" y="58" width="264" height="196" rx="22" fill="#FFF6EC"/>
+  <path d="M200 36 Q209 48 221 50 Q209 54 200 66 Q191 54 179 50 Q191 48 200 36Z" fill="#F47C9C"/>
+  <!-- people: 2 adults + 3 kids -->
+  <g>
+    <!-- adult 1 -->
+    <circle cx="109" cy="126" r="20" fill="#F6C5A6"/>
+    <path d="M89 120 Q91 98 109 100 Q129 100 129 122 Q120 110 109 112 Q99 112 89 120Z" fill="#5B3A4E"/>
+    <path d="M85 212 Q85 162 109 162 Q133 162 133 212 Z" fill="#B79BE8"/>
+    <path d="M99 170 Q109 180 119 170" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="103" cy="126" r="2.4" fill="#3E2835"/><circle cx="115" cy="126" r="2.4" fill="#3E2835"/>
+    <path d="M103 135 Q109 139 115 135" fill="none" stroke="#8A4353" stroke-width="2.6" stroke-linecap="round"/>
+    <!-- adult 2 -->
+    <circle cx="162" cy="118" r="21" fill="#E8AE8B"/>
+    <path d="M141 113 Q142 90 162 91 Q183 92 183 114 Q174 102 162 104 Q151 104 141 113Z" fill="#3E2835"/>
+    <path d="M138 212 Q138 154 162 154 Q186 154 186 212 Z" fill="#7ACBB8"/>
+    <circle cx="156" cy="118" r="2.4" fill="#3E2835"/><circle cx="168" cy="118" r="2.4" fill="#3E2835"/>
+    <path d="M156 127 Q162 131 168 127" fill="none" stroke="#8A4353" stroke-width="2.6" stroke-linecap="round"/>
+    <!-- kid 1 -->
+    <circle cx="218" cy="140" r="18" fill="#F6C5A6"/>
+    <path d="M200 136 Q202 116 218 117 Q235 118 236 138 Q227 127 218 129 Q209 128 200 136Z" fill="#6E4559"/>
+    <path d="M201 212 Q201 168 218 168 Q235 168 235 212 Z" fill="#FFC94D"/>
+    <circle cx="212" cy="141" r="2.2" fill="#3E2835"/><circle cx="224" cy="141" r="2.2" fill="#3E2835"/>
+    <path d="M212 149 Q218 153 224 149" fill="none" stroke="#8A4353" stroke-width="2.4" stroke-linecap="round"/>
+    <!-- kid 2 -->
+    <circle cx="258" cy="132" r="19" fill="#E8AE8B"/>
+    <path d="M239 128 Q241 108 258 109 Q276 110 277 130 Q267 118 258 120 Q248 120 239 128Z" fill="#573446"/>
+    <path d="M240 212 Q240 158 258 158 Q276 158 276 212 Z" fill="#F47C9C"/>
+    <circle cx="252" cy="133" r="2.2" fill="#3E2835"/><circle cx="264" cy="133" r="2.2" fill="#3E2835"/>
+    <path d="M252 141 Q258 145 264 141" fill="none" stroke="#8A4353" stroke-width="2.4" stroke-linecap="round"/>
+    <!-- kid 3 (Winnie) -->
+    <circle cx="300" cy="146" r="17" fill="#F6C5A6"/>
+    <circle cx="286" cy="132" r="9" fill="#573446"/>
+    <circle cx="313" cy="132" r="9" fill="#573446"/>
+    <path d="M283 143 Q285 126 300 127 Q316 128 317 145 Q308 134 300 136 Q291 135 283 143Z" fill="#573446"/>
+    <path d="M285 212 Q285 172 300 172 Q315 172 315 212 Z" fill="#FBD3DF"/>
+    <circle cx="294" cy="147" r="2.1" fill="#3E2835"/><circle cx="306" cy="147" r="2.1" fill="#3E2835"/>
+    <path d="M294 154 Q300 158 306 154" fill="none" stroke="#8A4353" stroke-width="2.3" stroke-linecap="round"/>
+  </g>
+  <!-- dog -->
+  <path d="M314 232 Q314 214 336 214 Q358 214 358 232 Z" fill="#E8B778"/>
+  <circle cx="342" cy="208" r="16" fill="#E8B778"/>
+  <path d="M329 198 Q322 190 328 186 Q336 190 336 200Z" fill="#B97C45"/>
+  <path d="M355 198 Q362 190 356 186 Q348 190 348 200Z" fill="#B97C45"/>
+  <circle cx="337" cy="207" r="2.4" fill="#3E2835"/><circle cx="347" cy="207" r="2.4" fill="#3E2835"/>
+  <ellipse cx="342" cy="214" rx="4.5" ry="3.5" fill="#3E2835"/>
+  <path d="M342 218 Q338 222 342 224 Q346 222 342 218" fill="#F47C9C"/>
+  <path d="M358 232 Q370 218 376 228" fill="none" stroke="#E8B778" stroke-width="7" stroke-linecap="round"/>
+  <!-- hearts -->
+  <path d="M58 92 Q68 74 78 92 Q68 106 58 92Z" fill="#F47C9C"/>
+  <path d="M326 86 Q336 68 346 86 Q336 100 326 86Z" fill="#B79BE8"/>
+  <g fill="#FFC94D">
+    <path d="M52 246 l5 11 11 5 -11 5 -5 11 -5 -11 -11 -5 11 -5Z"/>
+    <path d="M344 256 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4Z"/>
+  </g>
+</svg>
