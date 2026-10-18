@@ -6,7 +6,21 @@ window.WINNIE_LESSON = {
   child: "Winnie",
   age: 5,
   welcomeAudio: "assets/audio/welcome.wav",
-  demoDurations: [5.33, 5.69, 6.34, 6.29],
+  challenge: {
+    en: "Hi, my name is Winnie and I'm five years old! My favorite foods are ice cream and cake because they are super sweet. My favorite colors are pink and purple because they make me feel warm and happy. There are five people and a dog in my family, and I love my family so much!",
+    zh: "你好，我叫 Winnie，今年五岁！我最喜欢的食物是冰淇淋和蛋糕，因为它们超级甜。我最喜欢的颜色是粉色和紫色，因为它们让我感到温暖和快乐。我家有五个人和一只小狗，我非常爱我的家人！",
+    scene: "assets/img/scene-lesson.svg",
+    sceneAlt: "An open storybook with stars and letters",
+    audio: {
+      teacher: "assets/audio/paragraph-teacher.wav",
+      friend: "assets/audio/paragraph-friend.wav",
+      slow: "assets/audio/paragraph-slow.wav"
+    },
+    durations: { teacher: 19.32, friend: 23.35, slow: 23.71 },
+    maxSeconds: 90,
+    tip: "把四句话连起来完整说一遍，慢慢来，不用着急。"
+  },
+  demoDurations: [5.33, 5.69, 6.34, 6.29, 23.35],
   sentences: [
     {
       id: "name",
@@ -57,6 +71,7 @@ window.WINNIE_LESSON = {
     "Hi, my name is Winnie and I'm five years old.",
     "My favorite foods are ice cream and cake because they are really sweet.",
     "My favorite colors are pink and purple because they make me feel warm and happy.",
-    "There are five people and a dog in my family and I love my family so much."
+    "There are five people and a dog in my family and I love my family so much.",
+    "Hi, my name is Winnie and I'm five years old. My favorite foods are ice cream and cake because they are super sweet. My favorite colors are pink and purple because they make me feel warm and happy. There are five people and a dog in my family, and I love my family so much."
   ]
 };

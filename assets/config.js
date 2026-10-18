@@ -10,6 +10,9 @@ window.WINNIE_CONFIG = {
     "gemini-2.5-flash"
   ],
   aiEnabled: true,
+  ttsEndpoint: "/api/tts",
+  unitsTable: "units",
+  audioBucket: "unit-audio",
   voice: "teacher",
   sfx: true
 };

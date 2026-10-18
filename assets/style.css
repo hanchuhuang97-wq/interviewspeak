@@ -2634,6 +2634,246 @@ body.auth-locked { overflow: hidden; }
   .auth-brand { margin-bottom: 20px; }
 }
 
+/* dynamic units: progress dots for <=6 tasks, bar for longer units */
+.progress__steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0;
+}
+.progress__steps .progress__step,
+.progress__steps .progress__step:first-child,
+.progress__steps .progress__step:nth-child(2),
+.progress__steps .progress__step:nth-child(3),
+.progress__steps .progress__step:nth-child(4) {
+  position: relative;
+  left: auto;
+  transform: none;
+  margin: 0;
+}
+.progress__steps .progress__step.is-current {
+  transform: scale(1.06);
+}
+.progress__step.is-challenge {
+  color: var(--sun-dark);
+  background: var(--sun-soft);
+  border-color: #f1d690;
+}
+.progress__step.is-challenge.is-current,
+.progress__step.is-challenge.is-done {
+  color: #fff;
+  background: var(--sun);
+  border-color: var(--sun);
+}
+.progress-track {
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--rose), var(--lilac));
+  transition: width 0.3s ease;
+}
+.sentence-text--challenge {
+  font-size: clamp(20px, 2.35vw, 29px);
+  line-height: 1.48;
+}
+.sentence-card--challenge .sentence-card__art {
+  background: linear-gradient(180deg, #f6f1ff, #fff8f2);
+}
+.sentence-tile.is-challenge {
+  background: linear-gradient(180deg, #fffdf6, #fff8e8);
+  border-color: #f1e0b5;
+}
+.sentence-tile.is-challenge .sentence-tile__num {
+  color: var(--sun-dark);
+}
+.summary-row.is-challenge {
+  background: linear-gradient(180deg, #fffdf7, #fff9ec);
+  border-color: #f1e0b5;
+}
+.summary-row__label {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--lilac-soft);
+  color: var(--lilac-dark);
+  font-size: 10px;
+  font-weight: 800;
+}
+.summary-row.is-challenge .summary-row__label {
+  background: var(--sun-soft);
+  color: #936817;
+}
+
+/* ---------- teacher unit editor ---------- */
+body.editor-locked { overflow: hidden; }
+
+.editor-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 450;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(54, 34, 47, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.editor-card {
+  width: min(760px, 100%);
+  max-height: min(90vh, 900px);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: modal-in 0.3s ease both;
+}
+
+.editor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px 26px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.editor-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.editor-body {
+  padding: 18px 26px 22px;
+  overflow-y: auto;
+}
+
+.editor-intro {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.75;
+}
+
+.editor-intro code,
+.editor-setup code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--cream);
+  color: var(--rose-deep);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.editor-body .field textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.8;
+  resize: vertical;
+  outline: 0;
+}
+
+.editor-body .field textarea:focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 4px rgba(244, 124, 156, 0.12);
+}
+
+.editor-progress {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--lilac-soft);
+  border: 1px solid #e4d9f8;
+}
+
+.editor-progress__track {
+  height: 8px;
+  border-radius: 999px;
+  background: #e7ddf6;
+  overflow: hidden;
+}
+
+.editor-progress__track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--lilac), var(--rose));
+  transition: width 0.25s ease;
+}
+
+.editor-progress p {
+  margin: 7px 0 0;
+  color: var(--lilac-dark);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.editor-status {
+  margin: 16px 0 0;
+  padding: 10px 13px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.editor-status.is-err { background: var(--danger-soft); color: var(--danger); }
+.editor-status.is-ok { background: var(--mint-soft); color: var(--mint-dark); }
+
+.editor-setup {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.editor-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 26px;
+  border-top: 1px solid var(--line);
+  background: #fffaf7;
+}
+
+@media (max-width: 620px) {
+  .editor-gate { padding: 10px; }
+  .editor-card { max-height: 94vh; border-radius: 22px; }
+  .editor-head { padding: 18px 18px 12px; }
+  .editor-body { padding: 14px 18px 18px; }
+  .editor-foot { padding: 12px 18px; }
+  .editor-foot .btn { flex: 1; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 980px) {
   .hero { grid-template-columns: minmax(0, 1fr) minmax(290px, 0.8fr); gap: 18px; padding-top: 34px; }

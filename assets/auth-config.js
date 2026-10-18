@@ -15,7 +15,7 @@
  */
 window.WINNIE_AUTH = {
   enabled: true,
-  supabaseUrl: "https://epdawhkwjgbalulhcodd.supabase.co",
+supabaseUrl: "https://epdawhkwjgbalulhcodd.supabase.co",
   supabaseAnonKey: "sb_publishable_yTmqnDZcz2gZUm6T76TF_Q_BeVfkbPH",
   usernameDomain: "students.winnie-garden.app",
   allowSignUp: true

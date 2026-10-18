@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/tts.py": {
+      "maxDuration": 60
+    }
+  }
+}

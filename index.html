@@ -7,7 +7,7 @@
 <title>Winnie 口语小花园 · 幼儿园面试跟读练习</title>
 <meta name="description" content="Listen, repeat and get friendly AI feedback — a gentle speaking garden for a five-year-old." />
 <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml" />
-<link rel="stylesheet" href="assets/style.css?v=20261018u" />
+<link rel="stylesheet" href="assets/style.css?v=20261018x" />
 </head>
 <body>
 
@@ -123,7 +123,7 @@
       <div class="hero__copy">
         <p class="eyebrow-pill"><span class="eyebrow-pill__dot"></span> 幼儿园面试 · 英语口语</p>
         <h1 class="hero__title">和 <span class="highlight">Winnie</span> 一起<br>把英语说出来！</h1>
-        <p class="hero__lede">和黄老师一起，听一听、跟着说，收获小星星。<br>今天只练 4 句话，慢慢来就好。</p>
+        <p class="hero__lede" id="heroLede">和黄老师一起，听一听、跟着说，收获小星星。<br>今天只练 4 句话，慢慢来就好。</p>
         <div class="hero__actions">
           <button type="button" class="btn btn--primary btn--lg" id="startButton">
             <span id="startButtonLabel">开始练习</span>
@@ -135,7 +135,7 @@
           </button>
         </div>
         <ul class="hero__facts">
-          <li><svg class="icon"><use href="#i-sparkle"/></svg> 4 句话</li>
+          <li><svg class="icon"><use href="#i-sparkle"/></svg> <span id="heroTaskCount">4 句话</span></li>
           <li><svg class="icon"><use href="#i-clock"/></svg> 约 5 分钟</li>
           <li><svg class="icon"><use href="#i-lock"/></svg> 录音保存在本机</li>
         </ul>
@@ -157,7 +157,7 @@
       <div class="section-head">
         <div>
           <p class="kicker">Today's practice</p>
-          <h2 id="journeyTitle">今天的 4 句话</h2>
+          <h2 id="journeyTitle">今天的练习</h2>
         </div>
         <div class="home-progress" id="homeProgress" hidden>
           <span class="home-progress__stars" id="homeProgressStars"></span>
@@ -315,7 +315,10 @@
           <h3>账号</h3>
           <p>当前登录：<span id="settingsAccountEmail">—</span>。账号只用于门禁，录音和成绩仍保存在本机。</p>
         </div>
-        <button type="button" class="btn btn--ghost btn--sm" id="logoutButton">退出登录</button>
+        <div class="setting-actions">
+          <button type="button" class="btn btn--soft btn--sm" id="openEditorButton" hidden>课程编辑（老师）</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="logoutButton">退出登录</button>
+        </div>
       </section>
 
       <section class="setting-block">
@@ -418,11 +421,12 @@
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="assets/vendor/supabase.js?v=2.118.0"></script>
-<script src="assets/auth-config.js?v=20261018u"></script>
-<script src="assets/auth.js?v=20261018u"></script>
-<script src="assets/config.js?v=20261018u"></script>
-<script src="data/lesson.js?v=20261018u"></script>
-<script src="assets/scoring.js?v=20261018u"></script>
-<script src="assets/app.js?v=20261018u"></script>
+<script src="assets/auth-config.js?v=20261018x"></script>
+<script src="assets/auth.js?v=20261018x"></script>
+<script src="assets/config.js?v=20261018x"></script>
+<script src="data/lesson.js?v=20261018x"></script>
+<script src="assets/scoring.js?v=20261018x"></script>
+<script src="assets/app.js?v=20261018x"></script>
+<script src="assets/editor.js?v=20261018x"></script>
 </body>
 </html>

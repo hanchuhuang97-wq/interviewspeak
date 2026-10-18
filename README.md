@@ -2,12 +2,13 @@
 
 给 5 岁小朋友做的幼儿园面试英语跟读练习。听 Winnie 说一句，点麦克风跟读，马上得到星星和逐词反馈；四句话练完有一张可以打印的小成绩单。
 
-- **4 句面试自我介绍**：名字和年龄、喜欢的食物、喜欢的颜色、家人和小狗
+- **单元制课程**：默认「认识 Winnie」4 句 + 整段挑战；老师可在网页里发布 10–20 句的新单元
 - **自然示范音**：黄老师 / 小伙伴两种神经语音，每句还有慢速版
 - **真实录音**：录音、回放、重录；录音和成绩保存在本机
 - **账号门禁**：Supabase 用户名 + 密码登录；账号只用于进入，不改变本机录音
 - **两种评分**：无需 Key 的本机快速评分；填入 Gemini 免费 API Key 后得到发音、流利度、完整度和逐词点评
 - **一键下载**：每句单独下载，或在最后把全部录音打包成 ZIP
+- **老师课程编辑**：粘贴一句一行，自动生成神经语音和整段挑战，学生刷新后即可练习
 - **儿童友好界面**：大按钮、粉紫花园配色、星星动画、中文鼓励语；家长设置单独收纳
 
 ## 预览
@@ -23,6 +24,10 @@
 | 登录门禁 | 一键下载录音 |
 | --- | --- |
 | ![登录](docs/login-desktop.png) | ![下载录音](docs/summary-download.png) |
+
+| 老师课程编辑 | 整段挑战 |
+| --- | --- |
+| ![课程编辑](docs/editor-desktop.png) | ![整段挑战](docs/challenge-desktop.png) |
 
 ## 快速开始
 
@@ -88,6 +93,19 @@ window.WINNIE_AUTH = {
 - **由老师统一建号**（推荐班级使用）：在 Supabase **Authentication → Users → Add user** 创建，邮箱填 `用户名@students.winnie-garden.app`，设置密码并勾选自动确认；也可以关闭 Supabase 的公开注册，并把 `allowSignUp` 改为 `false`，隐藏注册入口。
 - 忘记密码：目前不支持自助邮件找回（合成邮箱收不到信），老师在 Supabase 后台重置密码。
 - 一旦已有账号，不要随意修改 `usernameDomain`，否则旧账号会找不到对应的合成邮箱。
+
+### 老师账号
+
+「课程编辑」按钮只对老师显示。老师账号需要在 Supabase 里设置 **app_metadata.role = teacher**（不是 user_metadata，后者用户可以自己改）：
+
+```sql
+update auth.users
+set raw_app_meta_data =
+  coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"teacher"}'::jsonb
+where email = 'huanglaoshi@students.winnie-garden.app';
+```
+
+设置后让老师**退出再登录**，新的 JWT 才会带上角色。学生的 `role` 留空即可；课程读取策略只放行 `active` 单元。
 
 ### 安全说明
 
@@ -178,7 +196,8 @@ Gemini 返回严格的 JSON：总分、发音、流利度、完整度、逐词�
 ## 隐私与数据
 
 - 录音默认保存在当前浏览器的 **IndexedDB**（`winnie-speaking-garden`），成绩也一起保存；刷新、关闭页面后再回来仍然在。
-- 登录账号由 **Supabase Auth** 管理，保存用户名映射出的合成邮箱和登录会话；不会把录音或成绩上传到 Supabase。
+- 登录账号由 **Supabase Auth** 管理，保存用户名映射出的合成邮箱和登录会话；不会把学生录音或成绩上传到 Supabase。
+- 老师发布的课程音频保存在 Supabase Storage 的 `unit-audio` 桶里，学生可公开读取；学生自己的录音仍然只在 IndexedDB。
 - 没有自建后端、广告或统计。页面本身是静态文件，登录是界面门禁；真正的数据权限要等以后接入 Supabase RLS。
 - 家长设置里可以一键清除本机录音和成绩；成绩单上的「再练一次」不会删除旧文件，只有设置里的清除操作会真正删除。
 - 开启 Gemini 后，每次评分会发送**单句音频**给 Google。是否保留、如何使用由 Google 的 API 条款决定；介意的话请保持本机模式。
@@ -196,17 +215,24 @@ winnie-speaking/
 │   ├── config.js            模型与站点默认值
 │   ├── auth-config.js       Supabase URL / anon key / 用户名域
 │   ├── auth.js              用户名+密码登录门禁
+│   ├── editor.js            老师课程编辑 + 音频生成/发布
 │   ├── vendor/supabase.js   Supabase JS 2.118.0（MIT，UMD）
 │   ├── style.css            全部样式
-│   ├── audio/               17 个示范/欢迎/演示音频（WAV）
+│   ├── audio/               21 个示范/欢迎/演示/整段音频（WAV）
 │   ├── img/                 Winnie 与四张场景 SVG
 │   └── fonts/               Baloo 2 / Nunito（本地字体）
 ├── data/
 │   └── lesson.js            四句话、翻译、提示、场景、时长
+├── api/
+│   └── tts.py               Vercel Python 函数：Edge 神经 TTS
+├── supabase/
+│   └── schema.sql           units 表、RLS、Storage 策略
+├── requirements.txt         Vercel Python 依赖（edge-tts）
+├── vercel.json               TTS 函数超时配置
 ├── docs/                    预览截图
 ├── serve.sh                 本地静态服务器
 └── tools/
-    ├── generate-audio.sh    用免费 Edge 神经语音重新生成音频
+    ├── generate-audio.sh    批量重新生成内置神经音频
     └── generate-audio-macos.sh  离线 macOS 系统语音备用
 ```
 
@@ -214,7 +240,7 @@ winnie-speaking/
 
 ### 改句子或翻译
 
-编辑 `data/lesson.js` 里的 `sentences` 数组：
+老师日常发布课程请用页面里的「课程编辑」；下面这种方式适合开发者维护内置演示单元。编辑 `data/lesson.js` 里的 `sentences` 数组：
 
 - `en`：页面显示的英文原句
 - `zh`：中文翻译
@@ -283,6 +309,8 @@ uv tool install edge-tts
 3. 部署后使用 Vercel 提供的 HTTPS 域名；麦克风才能工作。
 4. 把部署域名加入 Supabase **Authentication → URL Configuration** 的 Site URL / Redirect URLs。
 5. 确认 `assets/auth-config.js` 已填 Supabase URL 和 anon key，然后提交并重新部署。
+6. 在 Vercel 项目环境变量里设置 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 供 `api/tts.py` 校验老师身份；`requirements.txt` 会安装 `edge-tts`。
+7. 在 Supabase 里执行 `supabase/schema.sql`，创建存储桶和 RLS 策略，然后把老师账号的 `app_metadata.role` 设为 `teacher`。
 
 > Vercel 的环境变量对纯静态页面不可见；`GEMINI_API_KEY` 放进 Vercel 环境变量不会自动出现在浏览器里。当前版本的 Gemini Key 仍由家长在本机设置，公开部署前建议再加一个 `/api/score` Vercel Function 代理。登录门禁解决的是访问入口，不是 Key 保密。
 >
@@ -339,18 +367,45 @@ uv tool install edge-tts
 先确认这一轮至少有一句录音；浏览器可能拦截了多文件下载，用成绩单底部的 ZIP 按钮。下载位置由浏览器决定，通常在「下载」文件夹。
 
 **可以一次导入 10–20 句吗？**  
-当前版本是固定的 4 句单元，还不能直接导入多句或设置整段挑战；这需要把课程数据、音频生成和进度条改成动态结构（见下方「下一步」）。
+可以。老师登录后进入「家长设置 → 课程编辑」，一行一句粘贴，最多 20 句；勾选整段挑战后发布会自动生成音频。需要先完成 Supabase SQL、老师角色和 `/api/tts` 部署。
 
-## 下一步：多单元与整段挑战
+**课程编辑按钮不见了？**  
+只有 `app_metadata.role = teacher` 的账号会看到它；设置角色后需要重新登录刷新 JWT。
 
-当前的 4 句结构和进度条是按这个单元定制的。要支持每个单元 10–20 句、并在最后加「整段挑战」，推荐：
+**发布时 TTS 404 / 403？**  
+404 说明 `/api/tts` 还没部署；403/401 说明登录 token 失效或账号不是老师；检查 Vercel 的 `SUPABASE_URL` / `SUPABASE_ANON_KEY` 环境变量和 Supabase 中的教师角色。
 
-1. **课程数据动态化**：单元包含 `title`、`sentences[]`（每句有英文、翻译、场景）和可选的 `paragraphChallenge`；进度条、总结、星星总数按句数动态计算。
-2. **老师端课程编辑**：给 Supabase 用户加 `teacher` 角色；老师登录后看到「课程编辑」页，粘贴一行一句的文本，保存为一个 unit；学生只看到当前激活单元。
-3. **音频生成**：保存课程时，由 Vercel Function（服务端保存 TTS Key）调用神经 TTS，生成每句的慢速/常速和整段示范音频，存到 Supabase Storage 或 Vercel Blob；也可以先用本地脚本离线生成再部署，零服务器成本。
-4. **整段挑战**：所有句子完成后进入一段完整示范，学生录一遍整段，用整段文本评分；成绩单增加一行「整段挑战」，星星总数 = 每句 5 星 + 整段 5 星，ZIP 里也包含整段录音。
+## 老师课程编辑（动态单元 + 整段挑战）
 
-这两项是独立于当前登录门禁的下一阶段工作；需要确定「老师网页端编辑」还是「本地文本文件 + 脚本生成」后就能继续实现。
+老师登录后，打开 **家长设置 → 课程编辑（老师）**：
+
+1. 填单元标题。
+2. 一行一句粘贴英文；中文翻译可有可无，用 `|` 分隔：
+   ```text
+   I can see a big elephant at the zoo. | 我在动物园看到一头大象。
+   The little monkey likes bananas. | 小猴子喜欢吃香蕉。
+   ```
+3. 决定是否勾选「添加整段挑战」。勾选后会自动把所有句子拼成整段，并在最后增加一项整段练习。
+4. 点「生成并发布」。编辑器会为每一句和整段生成黄老师、小伙伴、慢速三条音轨，上传到 Supabase Storage，写入 `units` 表，并把新单元设为当前激活。
+
+学生刷新页面后会加载当前激活单元，进度条、总结、星星和下载会自动按句数变化。整段挑战和普通句子使用同一套评分、录音、下载逻辑；总星数是 `任务数 × 5`，例如 10 句 + 整段 = 11 个任务、满分 55 星。旧单元保留在 Supabase 里，但只有 active 的那个会被学生看到。
+
+### 一次性配置
+
+1. **运行 SQL**：在 Supabase SQL Editor 执行 `supabase/schema.sql`，它会创建 `units` 表、RLS 策略、`unit-audio` 公共读取桶和教师写入策略。
+2. **给老师设置角色**：按上一节的 SQL 把账号的 `app_metadata.role` 设为 `teacher`，然后重新登录。
+3. **部署 TTS 函数**：把 `api/tts.py`、`requirements.txt`、`vercel.json` 一起部署到 Vercel。Vercel 会安装 `edge-tts` 并暴露 `POST /api/tts`。
+4. **设置 Vercel 环境变量**（只给函数用，不会进入浏览器）：
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+5. **确认 Storage 桶**：`supabase/schema.sql` 已创建公开读取的 `unit-audio`；如果桶不存在，编辑器上传会失败。
+6. 老师登录 → 课程编辑 → 第一课发布。
+
+> 生成 20 句 × 3 条音轨 + 整段 3 条，需要几十次 TTS 请求，可能要几分钟；编辑器会显示进度。生成失败不会写入课程，但已经上传的音频文件可能留在 Storage 里。
+>
+> `/api/tts` 会校验 Supabase 登录 token 和 `app_metadata.role=teacher`；RLS 也会再校验一次。不要把 service_role key 放到前端。
+>
+> 本轮没有真实的 Supabase 项目和 Vercel 账号，所以 SQL/RLS/真实 TTS 发布链路是按官方接口写好但未在这里联调；登录表单、编辑器 UI、发布流程（模拟 TTS/Supabase）和动态 8 句单元/整段挑战已在浏览器中验证。
 
 ## 说明
 

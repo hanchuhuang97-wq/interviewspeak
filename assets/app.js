@@ -2,20 +2,96 @@
 (function () {
   "use strict";
 
-  const LESSON = window.WINNIE_LESSON;
+  const RAW_LESSON = window.WINNIE_LESSON;
+  let LESSON = null;
   const SCORING = window.WinnieScoring;
   const CONFIG = window.WINNIE_CONFIG || {};
   const PARAMS = new URLSearchParams(location.search);
   const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const AUDIO_VERSION = "20261018p";
+  const AUDIO_VERSION = "20261018v";
   const DB_NAME = "winnie-speaking-garden";
   const DB_VERSION = 1;
   const DB_STORE = "takes";
   const SETTINGS_KEY = "winnie.settings.v1";
 
-  if (!LESSON || !SCORING) {
+  if (!RAW_LESSON || !SCORING) {
     document.body.innerHTML = "<p style='padding:40px;font-family:sans-serif'>练习数据没有加载成功，请刷新页面。</p>";
     return;
+  }
+
+  function normalizeLesson(raw) {
+    const base = raw && typeof raw === "object" ? raw : {};
+    const sentences = Array.isArray(base.sentences) ? base.sentences.map((sentence, index) => ({
+      ...sentence,
+      id: sentence.id || `s${index + 1}`,
+      kind: sentence.kind || "sentence",
+      zh: sentence.zh || "",
+      scene: sentence.scene || "assets/img/scene-lesson.svg",
+      sceneAlt: sentence.sceneAlt || "An open storybook with stars",
+      audio: sentence.audio || null,
+      durations: sentence.durations || {},
+      maxSeconds: Number(sentence.maxSeconds) || 25,
+      tip: sentence.tip || "先听黄老师说，再跟着说。"
+    })) : [];
+    if (base.challenge && base.challenge.en) {
+      sentences.push({
+        ...base.challenge,
+        id: base.challenge.id || "challenge",
+        kind: "challenge",
+        zh: base.challenge.zh || "整段挑战",
+        scene: base.challenge.scene || "assets/img/scene-lesson.svg",
+        sceneAlt: base.challenge.sceneAlt || "An open storybook with stars",
+        audio: base.challenge.audio || null,
+        durations: base.challenge.durations || {},
+        maxSeconds: Number(base.challenge.maxSeconds) || 90,
+        tip: base.challenge.tip || "把整段完整说一遍，不用着急。"
+      });
+    }
+    return {
+      id: base.id || "lesson",
+      title: base.title || "Winnie's Practice",
+      titleZh: base.titleZh || "",
+      child: base.child || "Winnie",
+      age: base.age || 5,
+      welcomeAudio: base.welcomeAudio || "assets/audio/welcome.wav",
+      demoTranscripts: Array.isArray(base.demoTranscripts) ? base.demoTranscripts : null,
+      demoDurations: Array.isArray(base.demoDurations) ? base.demoDurations : null,
+      sentences
+    };
+  }
+
+  LESSON = normalizeLesson(RAW_LESSON);
+
+  function regularSentenceCount() {
+    return LESSON.sentences.filter((sentence) => sentence.kind !== "challenge").length;
+  }
+
+  function hasChallenge() {
+    return LESSON.sentences.some((sentence) => sentence.kind === "challenge");
+  }
+
+  function sentenceOrdinal(index) {
+    let count = 0;
+    for (let i = 0; i <= index; i += 1) {
+      if (LESSON.sentences[i] && LESSON.sentences[i].kind !== "challenge") count += 1;
+    }
+    return count;
+  }
+
+  function itemLabel(index) {
+    const sentence = LESSON.sentences[index];
+    if (!sentence) return "";
+    return sentence.kind === "challenge" ? "整段挑战" : `第 ${sentenceOrdinal(index)} 句`;
+  }
+
+  function nextActionLabel(index) {
+    const next = LESSON.sentences[index + 1];
+    if (!next) return "看成绩";
+    return next.kind === "challenge" ? "整段挑战" : "下一句";
+  }
+
+  function sentenceKey(sentence) {
+    return `${LESSON.id}:${sentence.id}`;
   }
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -30,6 +106,9 @@
   const homeProgressText = $("#homeProgressText");
   const startButton = $("#startButton");
   const startButtonLabel = $("#startButtonLabel");
+  const heroLede = $("#heroLede");
+  const heroTaskCount = $("#heroTaskCount");
+  const journeyTitle = $("#journeyTitle");
   const welcomeButton = $("#welcomeButton");
   const settingsButton = $("#settingsButton");
   const settingsModal = $("#settingsModal");
@@ -185,8 +264,19 @@
     return `<div class="stars" role="img" aria-label="${count} 颗星">${html}</div>`;
   }
 
+  function assetAudio(url) {
+    if (!url) return "";
+    if (!String(url).startsWith("assets/")) return url;
+    return `${url}${url.includes("?") ? "&" : "?"}v=${AUDIO_VERSION}`;
+  }
+
   function audioFor(index, variant) {
+    const sentence = LESSON.sentences[index];
     const key = variant === "slow" ? "slow" : state.settings.voice;
+    if (sentence && sentence.audio) {
+      if (sentence.audio[key]) return assetAudio(sentence.audio[key]);
+      if (sentence.audio.teacher) return assetAudio(sentence.audio.teacher);
+    }
     return `assets/audio/s${index + 1}-${key}.wav?v=${AUDIO_VERSION}`;
   }
 
@@ -277,7 +367,7 @@
     try {
       const tx = db.transaction(DB_STORE, "readwrite");
       tx.objectStore(DB_STORE).put({
-        id: LESSON.sentences[index].id,
+        id: sentenceKey(LESSON.sentences[index]),
         blob: entry.blob,
         transcript: entry.transcript || "",
         duration: entry.duration || 0,
@@ -320,7 +410,7 @@
     const records = await loadTakes();
     records.forEach((record) => {
       if (!record || !record.blob) return;
-      const index = LESSON.sentences.findIndex((sentence) => sentence.id === record.id);
+      const index = LESSON.sentences.findIndex((sentence) => sentenceKey(sentence) === record.id);
       if (index < 0 || state.recordings[index]) return;
       state.recordings[index] = {
         blob: record.blob,
@@ -338,6 +428,84 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* cloud units                                                         */
+  /* ------------------------------------------------------------------ */
+
+  let unitLoadPromise = null;
+
+  function rowToLesson(row) {
+    const genericScene = "assets/img/scene-lesson.svg";
+    const sentences = (Array.isArray(row.sentences) ? row.sentences : []).map((sentence, index) => ({
+      id: sentence.id || `s${index + 1}`,
+      en: sentence.en || "",
+      zh: sentence.zh || "",
+      speech: sentence.speech || sentence.en || "",
+      scene: sentence.scene || genericScene,
+      sceneAlt: sentence.sceneAlt || "An open storybook with stars",
+      audio: sentence.audio || null,
+      durations: sentence.durations || {},
+      maxSeconds: Number(sentence.maxSeconds) || 25,
+      tip: sentence.tip || "先听黄老师说，再跟着说。",
+      kind: "sentence"
+    })).filter((sentence) => sentence.en);
+    return {
+      id: row.id,
+      title: row.title || "黄老师的口语课",
+      titleZh: row.title_zh || row.title || "今天的练习",
+      child: "Winnie",
+      age: 5,
+      welcomeAudio: "assets/audio/welcome.wav",
+      sentences,
+      challenge: row.challenge && row.challenge.en ? row.challenge : null,
+      demoTranscripts: null,
+      demoDurations: null
+    };
+  }
+
+  function applyLesson(raw) {
+    teardownSession();
+    state.recordings.forEach((entry) => {
+      if (entry && entry.url) URL.revokeObjectURL(entry.url);
+    });
+    LESSON = normalizeLesson(raw);
+    state.recordings = new Array(LESSON.sentences.length).fill(null);
+    state.index = 0;
+    state.screen = "home";
+    showScreen("home");
+    updateHome();
+    restoreTakes();
+  }
+
+  async function loadActiveUnit() {
+    const auth = window.WinnieAuth;
+    if (!auth || !auth.client) return;
+    if (unitLoadPromise) return unitLoadPromise;
+    unitLoadPromise = (async () => {
+      try {
+        const { data, error } = await auth.client
+          .from("units")
+          .select("*")
+          .eq("active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error) {
+          console.warn("[units] could not load active unit", error);
+          return;
+        }
+        if (!data || !Array.isArray(data.sentences) || !data.sentences.length) return;
+        if (LESSON.id === data.id) return;
+        applyLesson(rowToLesson(data));
+      } catch (error) {
+        console.warn("[units] load failed", error);
+      } finally {
+        unitLoadPromise = null;
+      }
+    })();
+    return unitLoadPromise;
+  }
+
+  /* ------------------------------------------------------------------ */
   /* home                                                                */
   /* ------------------------------------------------------------------ */
 
@@ -346,9 +514,11 @@
       const entry = state.recordings[index];
       const stars = entry && entry.result ? Number(entry.result.stars) || 0 : 0;
       const done = !!(entry && entry.result);
-      return `<button type="button" class="sentence-tile ${done ? "is-done" : ""}" data-start-index="${index}" aria-label="第 ${index + 1} 句：${escapeHtml(sentence.en)}">
+      const challenge = sentence.kind === "challenge";
+      const label = itemLabel(index);
+      return `<button type="button" class="sentence-tile ${done ? "is-done" : ""} ${challenge ? "is-challenge" : ""}" data-start-index="${index}" aria-label="${label}：${escapeHtml(sentence.en)}">
         <span class="sentence-tile__art">
-          <span class="sentence-tile__num">${index + 1}</span>
+          <span class="sentence-tile__num">${challenge ? "★" : sentenceOrdinal(index)}</span>
           <img src="${sentence.scene}" alt="" />
         </span>
         <span class="sentence-tile__body">
@@ -364,17 +534,26 @@
   function updateHome() {
     if (!homeSentences) return;
     renderHomeTiles();
+    const total = LESSON.sentences.length;
+    const regular = regularSentenceCount();
+    if (heroLede) {
+      heroLede.innerHTML = `和黄老师一起，听一听、跟着说，收获小星星。<br>今天有 ${regular} 句话${hasChallenge() ? "和整段挑战" : ""}，慢慢来就好。`;
+    }
+    if (heroTaskCount) {
+      heroTaskCount.textContent = hasChallenge() ? `${regular} 句 + 整段` : `${regular} 句话`;
+    }
+    if (journeyTitle) journeyTitle.textContent = LESSON.titleZh || LESSON.title || "今天的练习";
     const scored = completedCount();
     const started = state.recordings.filter(Boolean).length;
     const stars = totalStars();
     if (started > 0) {
       homeProgress.hidden = false;
       homeProgressStars.innerHTML = `${icon("star")} ${stars} 颗星`;
-      homeProgressText.textContent = `${started} / ${LESSON.sentences.length} 句`;
+      homeProgressText.textContent = `${started} / ${total} 个任务`;
     } else {
       homeProgress.hidden = true;
     }
-    if (scored >= LESSON.sentences.length) {
+    if (scored >= total) {
       startButtonLabel.textContent = "查看成绩";
     } else if (started > 0) {
       startButtonLabel.textContent = "继续练习";
@@ -431,16 +610,30 @@
       const entry = state.recordings[index];
       const done = !!(entry && entry.result);
       const current = index === state.index;
+      const challenge = sentence.kind === "challenge";
       const className = [
         "progress__step",
         current ? "is-current" : "",
-        done ? "is-done" : ""
+        done ? "is-done" : "",
+        challenge ? "is-challenge" : ""
       ].filter(Boolean).join(" ");
-      const label = `第 ${index + 1} 句${done ? "，已完成" : ""}${current ? "，正在练习" : ""}`;
+      const label = `${itemLabel(index)}${done ? "，已完成" : ""}${current ? "，正在练习" : ""}`;
+      const mark = done ? icon("star") : challenge ? "★" : sentenceOrdinal(index);
       return `<li class="${className}" ${current ? 'aria-current="step"' : ""} aria-label="${label}">
-        ${done ? icon("star") : index + 1}
+        ${mark}
       </li>`;
     }).join("");
+  }
+
+  function progressHtml() {
+    const total = LESSON.sentences.length;
+    if (total > 6) {
+      const percent = Math.round(((state.index + 1) / total) * 100);
+      return `<div class="progress-track" role="progressbar" aria-label="练习进度" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${state.index + 1}" aria-valuetext="${itemLabel(state.index)}">
+        <span style="width:${percent}%"></span>
+      </div>`;
+    }
+    return `<ol class="progress__steps" aria-label="练习进度">${progressSteps()}</ol>`;
   }
 
   function renderPractice() {
@@ -448,30 +641,34 @@
     const entry = state.recordings[state.index];
     const isLast = state.index === LESSON.sentences.length - 1;
     const hasTake = !!entry;
+    const challenge = sentence.kind === "challenge";
+    const regular = regularSentenceCount();
+    const metaLabel = challenge ? "整段挑战" : `第 ${state.index + 1} 句 / ${regular}`;
+    const demoActive = state.demo && !!LESSON.demoTranscripts;
     practiceScreen.innerHTML = `
       <div class="practice-top">
         <button type="button" class="round-button" data-action="home" aria-label="返回首页">${icon("arrow-left")}</button>
         <div class="practice-progress">
           <div class="progress__meta">
-            <strong>第 ${state.index + 1} 句 / ${LESSON.sentences.length}</strong>
-            <span>${state.demo ? "演示模式 · " : ""}Listen · Repeat · Shine</span>
+            <strong>${metaLabel}</strong>
+            <span>${demoActive ? "演示模式 · " : ""}Listen · Repeat · Shine</span>
           </div>
-          <ol class="progress__steps" aria-label="练习进度">${progressSteps()}</ol>
+          ${progressHtml()}
         </div>
         <button type="button" class="icon-button icon-button--round" data-open-settings aria-label="家长设置">${icon("gear")}</button>
       </div>
 
-      <article class="sentence-card">
+      <article class="sentence-card ${challenge ? "sentence-card--challenge" : ""}">
         <div class="sentence-card__art">
-          <span class="sentence-badge">第 ${state.index + 1} 句</span>
+          <span class="sentence-badge">${itemLabel(state.index)}</span>
           <img src="${sentence.scene}" alt="${escapeHtml(sentence.sceneAlt)}" />
         </div>
         <div class="sentence-card__copy">
           <p class="sentence-eyebrow">
-            <span>Listen &amp; Repeat</span>
+            <span>${challenge ? "Whole Paragraph" : "Listen &amp; Repeat"}</span>
             <span id="voiceLabel">${state.settings.voice === "friend" ? "小伙伴" : "黄老师"}示范</span>
           </p>
-          <h1 class="sentence-text">${escapeHtml(sentence.en)}</h1>
+          <h1 class="sentence-text ${challenge ? "sentence-text--challenge" : ""}">${escapeHtml(sentence.en)}</h1>
           <p class="sentence-zh">${escapeHtml(sentence.zh)}</p>
 
           <div class="listen-row">
@@ -499,8 +696,8 @@
               </button>
             </div>
             <div class="record-copy">
-              <h3 id="recordTitle">${hasTake ? "想再棒一点？再录一次" : "轮到你啦！"}</h3>
-              <p id="recordText">${hasTake ? "点一下麦克风，再跟读一次。" : "点一下麦克风，准备好就大声说。"}</p>
+              <h3 id="recordTitle">${hasTake ? "想再棒一点？再录一次" : challenge ? "整段挑战开始啦！" : "轮到你啦！"}</h3>
+              <p id="recordText">${hasTake ? "点一下麦克风，再跟读一次。" : challenge ? "把整段完整说一遍，慢慢来就好。" : "点一下麦克风，准备好就大声说。"}</p>
               <div class="record-timer" aria-hidden="true">
                 <span class="record-timer__time" id="recordTime">00:00</span>
                 <span class="record-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
@@ -749,7 +946,7 @@
       </div>` : ""}
       <div class="result-actions">
         <button type="button" class="btn btn--ghost" data-action="retry-recording">${icon("refresh")}再试一次</button>
-        <button type="button" class="btn btn--primary btn--next" data-action="next">${isLast ? "看成绩" : "下一句"}${icon("arrow-right")}</button>
+        <button type="button" class="btn btn--primary btn--next" data-action="next">${nextActionLabel(state.index)}${icon("arrow-right")}</button>
       </div>
       <p class="result-note">${
         isGemini
@@ -781,7 +978,7 @@
       <p>${hint}</p>
       <div class="result-actions">
         <button type="button" class="btn btn--primary" data-action="retry-recording">${icon("refresh")}再录一次</button>
-        <button type="button" class="btn btn--ghost" data-action="next">${isLast ? "看成绩" : "先下一句"}${icon("arrow-right")}</button>
+        <button type="button" class="btn btn--ghost" data-action="next">${nextActionLabel(state.index)}${icon("arrow-right")}</button>
       </div>
     </div>`;
   }
@@ -891,7 +1088,7 @@
       return;
     }
     stopAllAudioTargets();
-    const audio = new Audio(`${LESSON.welcomeAudio}?v=${AUDIO_VERSION}`);
+    const audio = new Audio(assetAudio(LESSON.welcomeAudio));
     audio.preload = "auto";
     state.welcomeAudio = audio;
     welcomeButton.classList.add("is-playing");
@@ -1342,7 +1539,7 @@
   async function beginRecording() {
     if (state.isRecording || state.preparing) return;
     if (state.processing) return;
-    if (state.demo) {
+    if (state.demo && LESSON.demoTranscripts) {
       runDemoRecording();
       return;
     }
@@ -1874,21 +2071,24 @@
       const entry = state.recordings[index];
       const result = entry && entry.result;
       const stars = result ? Number(result.stars) || 0 : 0;
-      return `<div class="summary-row ${entry ? "" : "is-empty"}">
+      const challenge = sentence.kind === "challenge";
+      const label = itemLabel(index);
+      return `<div class="summary-row ${entry ? "" : "is-empty"} ${challenge ? "is-challenge" : ""}">
         <div class="summary-row__art">
-          <span class="summary-row__num">${index + 1}</span>
+          <span class="summary-row__num">${challenge ? "★" : sentenceOrdinal(index)}</span>
           <img src="${sentence.scene}" alt="" />
         </div>
         <div class="summary-row__text">
           <p class="summary-row__en">${escapeHtml(sentence.en)}</p>
           <div class="summary-row__meta">
-            ${result ? `<span class="summary-row__stars" aria-label="${stars} 颗星">${starIcons(stars)}</span><span class="summary-row__score">${Math.round(Number(result.overall) || 0)} 分</span><span>${result.provider === "gemini" ? "Gemini 点评" : "快速评分"}</span>` : `<span>${entry ? "录音已保存，还没有评分" : "这一句还没练"}</span>`}
+            <span class="summary-row__label">${label}</span>
+            ${result ? `<span class="summary-row__stars" aria-label="${stars} 颗星">${starIcons(stars)}</span><span class="summary-row__score">${Math.round(Number(result.overall) || 0)} 分</span><span>${result.provider === "gemini" ? "Gemini 点评" : "快速评分"}</span>` : `<span>${entry ? "录音已保存，还没有评分" : "这一项还没练"}</span>`}
           </div>
         </div>
         <div class="summary-row__actions">
-          ${entry ? `<button type="button" class="mini-button" data-summary-take="${index}" aria-label="听第 ${index + 1} 句我的录音">${icon("play")}</button>` : ""}
-          <button type="button" class="mini-button" data-summary-model="${index}" aria-label="听第 ${index + 1} 句示范">${icon("speaker")}</button>
-          ${entry ? `<button type="button" class="mini-button" data-summary-download="${index}" aria-label="下载第 ${index + 1} 句我的录音">${icon("download")}</button>` : ""}
+          ${entry ? `<button type="button" class="mini-button" data-summary-take="${index}" aria-label="听${label}我的录音">${icon("play")}</button>` : ""}
+          <button type="button" class="mini-button" data-summary-model="${index}" aria-label="听${label}示范">${icon("speaker")}</button>
+          ${entry ? `<button type="button" class="mini-button" data-summary-download="${index}" aria-label="下载${label}我的录音">${icon("download")}</button>` : ""}
           <button type="button" class="summary-row__retry" data-summary-retry="${index}">${entry ? "再练" : "去练"}</button>
         </div>
       </div>`;
@@ -1904,7 +2104,9 @@
     const average = scoredEntries.length
       ? Math.round(scoredEntries.reduce((sum, entry) => sum + (Number(entry.result.overall) || 0), 0) / scoredEntries.length)
       : null;
-    const allDone = scoredEntries.length === LESSON.sentences.length;
+    const taskCount = LESSON.sentences.length;
+    const maxStars = taskCount * 5;
+    const allDone = scoredEntries.length === taskCount;
     const allFull = allDone && scoredEntries.every((entry) => Number(entry.result.stars) === 5);
     const allStrong = allDone && scoredEntries.every((entry) => Number(entry.result.stars) >= 4);
     const title = !taken
@@ -1914,7 +2116,7 @@
         : allStrong
           ? "闪亮小主播，<span class=\"title-tail\">太棒啦！</span>"
           : allDone
-            ? "四句话，全部完成！"
+            ? `${taskCount} 个任务，全部完成！`
             : "今天也勇敢开口啦！";
     const focusEntry = scoredEntries
       .filter((entry) => Array.isArray(entry.result.focus) && entry.result.focus.length)
@@ -1922,7 +2124,7 @@
     let nextTip = "慢一点、大声一点，就是最棒的练习。";
     if (focusEntry) {
       const sentenceIndex = state.recordings.indexOf(focusEntry);
-      nextTip = `下次可以再练：第 ${sentenceIndex + 1} 句里的 ${focusEntry.result.focus.slice(0, 2).join("、")}。`;
+      nextTip = `下次可以再练：${itemLabel(sentenceIndex)}里的 ${focusEntry.result.focus.slice(0, 2).join("、")}。`;
     }
 
     summaryScreen.innerHTML = `
@@ -1930,19 +2132,19 @@
         <img class="summary-mascot" src="assets/img/winnie-hero.svg" alt="" />
         <p class="kicker">Great work, Winnie!</p>
         <h1>${title}</h1>
-        <p>${taken ? "每一次开口，都会让英语变得更勇敢、更清楚。" : "听一听 Winnie 的示范，然后大声跟着说。四句话就够啦。"}</p>
+        <p>${taken ? "每一次开口，都会让英语变得更勇敢、更清楚。" : `听一听黄老师的示范，然后大声跟着说。${regularSentenceCount()} 句话${hasChallenge() ? "加整段挑战" : ""}，慢慢来。`}</p>
         <div class="summary-stats">
           <div class="summary-stat summary-stat--stars">
             <strong>${icon("star")} ${stars}</strong>
-            <span>星星 · 满分 20</span>
+            <span>星星 · 满分 ${maxStars}</span>
           </div>
           <div class="summary-stat">
             <strong>${average === null ? "—" : average}</strong>
             <span>平均分</span>
           </div>
           <div class="summary-stat">
-            <strong>${scoredEntries.length}<small style="font-size:15px;color:var(--muted)"> / ${LESSON.sentences.length}</small></strong>
-            <span>完成的句子</span>
+            <strong>${scoredEntries.length}<small style="font-size:15px;color:var(--muted)"> / ${taskCount}</small></strong>
+            <span>完成的任务</span>
           </div>
         </div>
       </div>
@@ -1950,8 +2152,8 @@
       <section class="summary-section" aria-labelledby="summaryListTitle">
         <div class="section-head">
           <div>
-            <p class="kicker">Your four sentences</p>
-            <h2 id="summaryListTitle">一句一句看过来</h2>
+            <p class="kicker">Your practice</p>
+            <h2 id="summaryListTitle">一项一项看过来</h2>
           </div>
         </div>
         <div class="summary-list">${summaryRows()}</div>
@@ -2321,6 +2523,10 @@
       try { goHome(); } catch (error) { /* app may still be booting */ }
     });
 
+    window.addEventListener("winnie:unlock", () => {
+      loadActiveUnit();
+    });
+
     window.addEventListener("pagehide", () => {
       releaseStream(state.stream);
       if (state.recorder && state.recorder.state !== "inactive") {
@@ -2337,6 +2543,11 @@
       setTimeout(() => showToast("演示模式：点麦克风会用示范音频模拟一次跟读。", 3800), 700);
     }
     restoreTakes();
+    // If auth is configured, the Supabase client appears after the auth module
+    // initializes; load the teacher's active unit once it is available.
+    setTimeout(() => {
+      if (window.WinnieAuth && window.WinnieAuth.client) loadActiveUnit();
+    }, 800);
   }
 
   boot();
