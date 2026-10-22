@@ -32,6 +32,7 @@
   const settingsAccountEmail = document.getElementById("settingsAccountEmail");
   const logoutButton = document.getElementById("logoutButton");
   const openEditorButton = document.getElementById("openEditorButton");
+  const manageUnitsButton = document.getElementById("manageUnitsButton");
   const app = document.getElementById("app");
   const topbar = document.querySelector(".topbar");
   const footer = document.querySelector(".footer");
@@ -66,6 +67,7 @@
     if (accountChip) accountChip.hidden = true;
     if (accountSetting) accountSetting.hidden = true;
     if (openEditorButton) openEditorButton.hidden = true;
+    if (manageUnitsButton) manageUnitsButton.hidden = true;
     if (accountEmail) accountEmail.textContent = "";
     if (settingsAccountEmail) settingsAccountEmail.textContent = "—";
   }
@@ -80,6 +82,7 @@
     if (accountSetting) accountSetting.hidden = false;
     if (settingsAccountEmail) settingsAccountEmail.textContent = label;
     if (openEditorButton) openEditorButton.hidden = !isTeacherRole(state.session && state.session.user);
+    if (manageUnitsButton) manageUnitsButton.hidden = !isTeacherRole(state.session && state.session.user);
   }
 
   function setStatus(el, message, tone) {
@@ -331,6 +334,12 @@
     if (openEditorButton) {
       openEditorButton.addEventListener("click", () => {
         window.dispatchEvent(new CustomEvent("winnie:open-editor"));
+      });
+    }
+
+    if (manageUnitsButton) {
+      manageUnitsButton.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("winnie:manage-units"));
       });
     }
 

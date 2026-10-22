@@ -12,9 +12,24 @@
 
   let overlay = null;
   let busy = false;
+  let managerOverlay = null;
+  let managerBusy = false;
+  let managerUnits = [];
 
   function el(id) {
     return document.getElementById(id);
+  }
+
+  function esc(value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[char]));
+  }
+
+  function syncBodyLock() {
+    const editorOpen = overlay && !overlay.hidden;
+    const managerOpen = managerOverlay && !managerOverlay.hidden;
+    document.body.classList.toggle("editor-locked", !!(editorOpen || managerOpen));
   }
 
   function makeUuid() {
@@ -119,15 +134,16 @@
       return;
     }
     build();
+    if (managerOverlay) managerOverlay.hidden = true;
     overlay.hidden = false;
-    document.body.classList.add("editor-locked");
+    syncBodyLock();
     setTimeout(() => el("editorTitle").focus(), 60);
   }
 
   function close() {
     if (busy) return;
     if (overlay) overlay.hidden = true;
-    document.body.classList.remove("editor-locked");
+    syncBodyLock();
   }
 
   function parseLines(text) {
@@ -327,10 +343,220 @@
     }
   }
 
+  /* ------------------------------------------------------------------ */
+  /* existing unit management                                           */
+  /* ------------------------------------------------------------------ */
+
+  function managerStatus(message, tone) {
+    const node = el("managerStatus");
+    if (!node) return;
+    node.textContent = message || "";
+    node.hidden = !message;
+    node.className = "editor-status" + (tone ? ` is-${tone}` : "");
+  }
+
+  function setManagerBusy(next) {
+    managerBusy = next;
+    const list = el("managerList");
+    if (list) list.querySelectorAll("button").forEach((button) => { button.disabled = next; });
+    const refresh = el("managerRefresh");
+    if (refresh) refresh.disabled = next;
+  }
+
+  function managerDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("zh-CN");
+  }
+
+  function buildManager() {
+    if (managerOverlay) return;
+    managerOverlay = document.createElement("div");
+    managerOverlay.className = "editor-gate";
+    managerOverlay.id = "unitManager";
+    managerOverlay.hidden = true;
+    managerOverlay.innerHTML = `
+      <div class="editor-card">
+        <header class="editor-head">
+          <div>
+            <p class="kicker">For teachers</p>
+            <h2>课程管理</h2>
+          </div>
+          <button type="button" class="icon-button icon-button--round" id="managerCloseIcon" aria-label="关闭课程管理">✕</button>
+        </header>
+        <div class="editor-body">
+          <p class="editor-intro">学生端只显示标记为「当前」的单元。历史单元可以切换回来或删除；删除当前单元后，学生刷新页面会看到内置课程。</p>
+          <p class="editor-status" id="managerStatus" role="status" hidden></p>
+          <div class="manager-list" id="managerList">
+            <p class="manager-empty">正在读取课程…</p>
+          </div>
+        </div>
+        <footer class="editor-foot">
+          <button type="button" class="btn btn--ghost" id="managerRefresh">刷新列表</button>
+          <button type="button" class="btn btn--primary" id="managerClose">关闭</button>
+        </footer>
+      </div>`;
+    document.body.appendChild(managerOverlay);
+    el("managerCloseIcon").addEventListener("click", closeManager);
+    el("managerClose").addEventListener("click", closeManager);
+    el("managerRefresh").addEventListener("click", loadUnits);
+    el("managerList").addEventListener("click", handleManagerClick);
+    managerOverlay.addEventListener("click", (event) => {
+      if (event.target === managerOverlay) closeManager();
+    });
+  }
+
+  async function openManager() {
+    const auth = window.WinnieAuth;
+    if (!auth || !auth.client || !auth.isTeacher()) {
+      window.alert("课程管理只对老师账号开放。");
+      return;
+    }
+    buildManager();
+    if (overlay) overlay.hidden = true;
+    managerOverlay.hidden = false;
+    syncBodyLock();
+    managerStatus("");
+    await loadUnits();
+  }
+
+  function closeManager() {
+    if (managerBusy) return;
+    if (managerOverlay) managerOverlay.hidden = true;
+    syncBodyLock();
+  }
+
+  function renderUnits() {
+    const list = el("managerList");
+    if (!list) return;
+    if (!managerUnits.length) {
+      list.innerHTML = `<p class="manager-empty">还没有发布过单元。关闭这里，用「课程编辑」创建第一个单元。</p>`;
+      return;
+    }
+    list.innerHTML = managerUnits.map((unit) => {
+      const sentenceCount = Array.isArray(unit.sentences) ? unit.sentences.length : 0;
+      const challenge = unit.challenge && unit.challenge.en ? " + 整段" : "";
+      const active = !!unit.active;
+      return `<div class="manager-row ${active ? "is-active" : ""}">
+        <div class="manager-info">
+          <strong>${esc(unit.title || "未命名单元")}</strong>
+          <span class="manager-meta">${sentenceCount} 句${challenge} · ${esc(managerDate(unit.created_at))}</span>
+          <span class="manager-id">${esc(unit.id)}</span>
+        </div>
+        <span class="manager-badge ${active ? "is-active" : ""}">${active ? "当前" : "历史"}</span>
+        <div class="manager-actions">
+          ${active ? "" : `<button type="button" class="btn btn--soft btn--sm" data-manager-action="activate" data-id="${esc(unit.id)}">设为当前</button>`}
+          <button type="button" class="btn btn--ghost btn--sm" data-manager-action="delete" data-id="${esc(unit.id)}">删除</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  async function loadUnits() {
+    const auth = window.WinnieAuth;
+    if (!auth || !auth.client) {
+      managerStatus("登录状态已失效，请重新登录。", "err");
+      return;
+    }
+    const unitsTable = CONFIG.unitsTable || "units";
+    setManagerBusy(true);
+    managerStatus("");
+    const list = el("managerList");
+    if (list) list.innerHTML = `<p class="manager-empty">正在读取课程…</p>`;
+    try {
+      const { data, error } = await auth.client
+        .from(unitsTable)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      managerUnits = Array.isArray(data) ? data : [];
+      renderUnits();
+    } catch (error) {
+      console.warn("[manager]", error);
+      managerStatus(`读取课程失败：${error.message}。请确认 units 表和教师 RLS 已创建。`, "err");
+      if (list) list.innerHTML = `<p class="manager-empty">暂时读不到课程列表。</p>`;
+    } finally {
+      setManagerBusy(false);
+    }
+  }
+
+  async function activateUnit(id) {
+    if (managerBusy) return;
+    const unit = managerUnits.find((item) => item.id === id);
+    if (!unit) return;
+    if (!window.confirm(`把「${unit.title || "未命名单元"}」设为当前单元？学生刷新后会看到它。`)) return;
+    const auth = window.WinnieAuth;
+    if (!auth || !auth.client) return;
+    const unitsTable = CONFIG.unitsTable || "units";
+    managerBusy = true;
+    setManagerBusy(true);
+    try {
+      const { error: deactivateError } = await auth.client.from(unitsTable).update({ active: false }).eq("active", true);
+      if (deactivateError) throw deactivateError;
+      const { error: activateError } = await auth.client.from(unitsTable).update({ active: true }).eq("id", id);
+      if (activateError) throw activateError;
+      await loadUnits();
+      managerStatus("已设为当前单元。学生刷新页面后生效。", "ok");
+    } catch (error) {
+      managerStatus(`切换失败：${error.message}`, "err");
+    } finally {
+      managerBusy = false;
+      setManagerBusy(false);
+    }
+  }
+
+  async function deleteUnit(id) {
+    if (managerBusy) return;
+    const unit = managerUnits.find((item) => item.id === id);
+    if (!unit) return;
+    const activeWarning = unit.active ? "\n这是当前单元；删除后学生刷新页面会回退到内置课程。" : "";
+    if (!window.confirm(`删除「${unit.title || "未命名单元"}」及其音频？此操作不能撤销。${activeWarning}`)) return;
+    const auth = window.WinnieAuth;
+    if (!auth || !auth.client) return;
+    const unitsTable = CONFIG.unitsTable || "units";
+    const bucket = CONFIG.audioBucket || "unit-audio";
+    managerBusy = true;
+    setManagerBusy(true);
+    let audioWarning = "";
+    try {
+      const { error: deleteError } = await auth.client.from(unitsTable).delete().eq("id", id);
+      if (deleteError) throw deleteError;
+      try {
+        const { data: files, error: listError } = await auth.client.storage.from(bucket).list(id);
+        if (listError) throw listError;
+        if (Array.isArray(files) && files.length) {
+          const paths = files.map((file) => `${id}/${file.name}`);
+          const { error: removeError } = await auth.client.storage.from(bucket).remove(paths);
+          if (removeError) throw removeError;
+        }
+      } catch (error) {
+        audioWarning = ` 单元已删除，但音频清理失败：${error.message}`;
+      }
+      await loadUnits();
+      managerStatus(`已删除「${unit.title || "未命名单元"}」。${audioWarning}`, audioWarning ? "err" : "ok");
+    } catch (error) {
+      managerStatus(`删除失败：${error.message}`, "err");
+    } finally {
+      managerBusy = false;
+      setManagerBusy(false);
+    }
+  }
+
+  function handleManagerClick(event) {
+    const button = event.target.closest("[data-manager-action]");
+    if (!button || managerBusy) return;
+    const id = button.dataset.id;
+    if (button.dataset.managerAction === "activate") activateUnit(id);
+    else if (button.dataset.managerAction === "delete") deleteUnit(id);
+  }
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && overlay && !overlay.hidden) close();
+    if (event.key !== "Escape") return;
+    if (managerOverlay && !managerOverlay.hidden) closeManager();
+    else if (overlay && !overlay.hidden) close();
   });
 
   window.addEventListener("winnie:open-editor", open);
-  window.WinnieEditor = { open };
+  window.addEventListener("winnie:manage-units", openManager);
+  window.WinnieEditor = { open, openManager };
 })();
